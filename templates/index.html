@@ -1,0 +1,43 @@
+<html>
+    <head>
+        <title>Upload</title>
+        <meta http-equiv="Expires" content="Fri, Jun 12 1981 08:20:00 GMT">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="Cache-Control" content="no-cache">
+    </head>
+    <body>
+        <form method=POST enctype=multipart/form-data action="{{ url_for('loadsite') }}">
+            <input type=file name=csvtype>
+            <input type="submit">
+        </form>
+        {% if params %}
+            <form method="POST" action="{{ url_for('test') }}">
+                {% for i in range(index) %}
+                    <select name="params{{ i }}" id="params{{ i }}">
+                        {% for param in params %}
+                            <option value="{{ param }}">{{ param }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="reds{{ i }}" id="reds{{ i }}">
+                        {% for symbol in symbols %}
+                            <option value="{{ symbol }}">{{ symbol }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="greens{{ i }}" id="greens{{ i }}">
+                        {% for symbol in symbols %}
+                            <option value="{{ symbol }}">{{ symbol }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="blues{{ i }}" id="blues{{ i }}">
+                        {% for symbol in symbols %}
+                            <option value="{{ symbol }}">{{ symbol }}</option>
+                        {% endfor %}
+                    </select>
+                    <img src="static/permanent/figure{{ i }}.png">
+                    <br/>
+                {% endfor %}
+                <button type="submit" class="btn btn-default">Go</button>
+            </form>
+        {% endif %}
+    </body>
+</html>
