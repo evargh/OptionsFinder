@@ -2,8 +2,12 @@
 
 import os
 import pandas
-import matplotlib.pyplot as plt
-import seaborn as sns
+import plotly as pl
+import plotly.graph_objects as go
+import numpy as np
+import json
+
+
 from datetime import datetime
 from flask import Flask, render_template, flash, request, redirect, url_for
 from flask_uploads import UploadSet, configure_uploads, DATA
@@ -18,10 +22,6 @@ app.config['SECRET_KEY'] = 'very secret'
 configure_uploads(app, ceeesvees)
 
 graphcount = 2
-
-figa = plt.gcf()
-figa.set_size_inches(12,8)
-sns.set_style("whitegrid")
 
 def take_numeric(df):
     df["Open"] = df["Open"].astype("str")
@@ -45,6 +45,7 @@ def take_numeric(df):
     df["IV Idx"] = df["IV Idx"].str.rstrip(to_strip='%')
     df["IV Idx"] = df["IV Idx"].str.replace(',', '').replace('%%', '').replace('--', '0')
     df["IV Idx"] = pandas.to_numeric(df["IV Idx"])
+
 
 def readCSV(filename, datesent):
     todaysfile = pandas.read_csv(filepath_or_buffer='static/csv/csvs/'+filename,
@@ -77,21 +78,28 @@ def loadbig():
     del goodparm[0]
     allsymb = printer['Symbol'].tolist()
     allsymb.insert(0, 'None')
+    set(allsymb)                        #convert these to string
+    print(allsymb)
     return [goodparm, allsymb, bigset]
 
 
-def getplot(df, parm, red, green, blue, number):
-    valids = []
-    coolset = df.reset_index()
+def getplot(df, parm, red, green, blue):
+    data = []
+    redset = blueset = greenset = df.reset_index()
     if red in (df.reset_index())['Symbol'].tolist():
-        valids.extend(coolset.Symbol[coolset.Symbol == red].index.tolist())
+        redset = redset.loc[redset.Symbol[redset.Symbol == red].index.tolist()]
+        data.append(go.Scatter(x=redset['Date'], y=redset[parm], mode='lines+markers'))
+        print(redset)
     if green in (df.reset_index())['Symbol'].tolist():
-        valids.extend(coolset.Symbol[coolset.Symbol == green].index.tolist())
+        greenset = greenset.loc[greenset.Symbol[greenset.Symbol == green].index.tolist()]
+        data.append(go.Scatter(x=greenset['Date'], y=greenset[parm], mode='lines+markers'))
+        print(greenset)
     if blue in (df.reset_index())['Symbol'].tolist():
-        valids.extend(coolset.Symbol[coolset.Symbol == blue].index.tolist())
-    partplot = sns.relplot(x='Date', y=parm, hue='Symbol', kind='line', markers=True, data=coolset.loc[valids])
-    figure = partplot.fig
-    figure.savefig('static/permanent/figure' + str(number) + '.png')
+        blueset = blueset.loc[blueset.Symbol[blueset.Symbol == blue].index.tolist()]
+        data.append(go.Scatter(x=blueset['Date'], y=blueset[parm], mode='lines+markers'))
+        print(blueset)
+
+    return json.dumps(data, cls=pl.utils.PlotlyJSONEncoder)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -116,6 +124,7 @@ def test():
     redder = []
     greener = []
     bluer = []
+    jsons = []
     for i in range(graphcount):
         appender = str(i)
         paramer.append(str(request.form.get('params'+appender)))
@@ -126,8 +135,23 @@ def test():
         importantset = loadbig()
         for i in range(graphcount):
             if not (redder[i] == greener[i] == bluer[i] == 'None'):
-                getplot(importantset[2], paramer[i], redder[i], greener[i], bluer[i], i)
-        return render_template('index.html', params=importantset[0], symbols=importantset[1], index=graphcount)
+                jsons.append(getplot(importantset[2], paramer[i], redder[i], greener[i], bluer[i]))
+                print('appended '+paramer[i]+" "+redder[i]+" "+greener[i]+" "+bluer[i]+" "+str(i))
+
+        if len(jsons) == 2:
+            print('two!')
+            return render_template('index.html', params=importantset[0], symbols=importantset[1], index=graphcount,
+                                   plot1=jsons[0], plot2=jsons[1])
+
+        if len(jsons) == 1:
+            print('one!')
+            return render_template('index.html', params=importantset[0], symbols=importantset[1], index=graphcount,
+                                   plot1=jsons[0])
+
+        if len(jsons) == 0:
+            print('none')
+            return render_template('index.html', params=importantset[0], symbols=importantset[1], index=graphcount)
+
     return paramer + redder + greener + bluer
 
 
