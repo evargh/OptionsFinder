@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 
+import json
 import os
+from datetime import datetime
+
 import pandas
 import plotly as pl
 import plotly.graph_objects as go
-import numpy as np
-import json
-
-
-from datetime import datetime
-from flask import Flask, render_template, flash, request, redirect, url_for
+from flask import Flask, render_template, flash, request
 from flask_uploads import UploadSet, configure_uploads, DATA
 
 app = Flask(__name__)
@@ -76,10 +74,8 @@ def loadbig():
     printer = bigset.reset_index()
     goodparm = bigset.columns.tolist()
     del goodparm[0]
-    allsymb = printer['Symbol'].tolist()
+    allsymb = list(dict.fromkeys(printer['Symbol'].astype("str").tolist()))
     allsymb.insert(0, 'None')
-    set(allsymb)                        #convert these to string
-    print(allsymb)
     return [goodparm, allsymb, bigset]
 
 
@@ -88,18 +84,25 @@ def getplot(df, parm, red, green, blue):
     redset = blueset = greenset = df.reset_index()
     if red in (df.reset_index())['Symbol'].tolist():
         redset = redset.loc[redset.Symbol[redset.Symbol == red].index.tolist()]
-        data.append(go.Scatter(x=redset['Date'], y=redset[parm], mode='lines+markers'))
-        print(redset)
+        data.append(go.Scatter(x=redset['Date'],
+                               y=redset[parm],
+                               mode='lines+markers',
+                               name=red))
     if green in (df.reset_index())['Symbol'].tolist():
         greenset = greenset.loc[greenset.Symbol[greenset.Symbol == green].index.tolist()]
-        data.append(go.Scatter(x=greenset['Date'], y=greenset[parm], mode='lines+markers'))
-        print(greenset)
+        data.append(go.Scatter(x=greenset['Date'],
+                               y=greenset[parm],
+                               mode='lines+markers',
+                               name=green))
     if blue in (df.reset_index())['Symbol'].tolist():
         blueset = blueset.loc[blueset.Symbol[blueset.Symbol == blue].index.tolist()]
-        data.append(go.Scatter(x=blueset['Date'], y=blueset[parm], mode='lines+markers'))
-        print(blueset)
-
-    return json.dumps(data, cls=pl.utils.PlotlyJSONEncoder)
+        data.append(go.Scatter(x=blueset['Date'],
+                               y=blueset[parm],
+                               mode='lines+markers',
+                               name=blue))
+    layout = dict(title=parm + ' vs Time', xaxis_title="Time", yaxis_title=parm, showlegend=True)
+    fig = dict(data=data, layout=layout)
+    return json.dumps(fig, cls=pl.utils.PlotlyJSONEncoder)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -136,7 +139,6 @@ def test():
         for i in range(graphcount):
             if not (redder[i] == greener[i] == bluer[i] == 'None'):
                 jsons.append(getplot(importantset[2], paramer[i], redder[i], greener[i], bluer[i]))
-                print('appended '+paramer[i]+" "+redder[i]+" "+greener[i]+" "+bluer[i]+" "+str(i))
 
         if len(jsons) == 2:
             print('two!')

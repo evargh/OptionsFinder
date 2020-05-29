@@ -1,14 +1,12 @@
 <html>
     <head>
-        <title>Upload</title>
-        <meta http-equiv="Expires" content="Fri, Jun 12 1981 08:20:00 GMT">
-        <meta http-equiv="Pragma" content="no-cache">
-        <meta http-equiv="Cache-Control" content="no-cache">
+        <title>Options Tracer</title>
 
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
     </head>
     <body>
+        <h1>Options Tracker</h1>
         <form method=POST enctype=multipart/form-data action="{{ url_for('loadsite') }}">
             <input type=file name=csvtype>
             <input type="submit">
@@ -45,18 +43,18 @@
             <div class="chart" id="graphone">
                 <script>
                     var graphs = {{plot1 | safe}};
-                    Plotly.plot('graph1',graphs,{});
+                    Plotly.plot('graphone',graphs,{});
                 </script>
             </div>
         {% endif %}
-        {% if plot1 %}
+        {% if plot2 %}
             <div class="chart" id="graphtwo">
                 <script>
                     var graphs = {{plot2 | safe}};
-                    Plotly.plot('graph2',graphs,{});
+                    Plotly.plot('graphtwo',graphs,{});
                 </script>
             </div>
         {% endif %}
-    <script src="{{ url_for('static', filename='js/jquery-3.5.1.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/jquery-3.5.1.min.js') }}"></script>
     </body>
 </html>
