@@ -21,6 +21,9 @@ configure_uploads(app, ceeesvees)
 
 graphcount = 2
 
+plot1 = ""
+plot2 = ""
+
 def take_numeric(df):
     df["Open"] = df["Open"].astype("str")
     df["Open"] = df["Open"].str.replace(',', '').replace('--', '0')
@@ -75,31 +78,22 @@ def loadbig():
     goodparm = bigset.columns.tolist()
     del goodparm[0]
     allsymb = list(dict.fromkeys(printer['Symbol'].astype("str").tolist()))
-    allsymb.insert(0, 'None')
     return [goodparm, allsymb, bigset]
 
 
-def getplot(df, parm, red, green, blue):
+def getplot(df, parm, names):
     data = []
-    redset = blueset = greenset = df.reset_index()
-    if red in (df.reset_index())['Symbol'].tolist():
-        redset = redset.loc[redset.Symbol[redset.Symbol == red].index.tolist()]
-        data.append(go.Scatter(x=redset['Date'],
-                               y=redset[parm],
-                               mode='lines+markers',
-                               name=red))
-    if green in (df.reset_index())['Symbol'].tolist():
-        greenset = greenset.loc[greenset.Symbol[greenset.Symbol == green].index.tolist()]
-        data.append(go.Scatter(x=greenset['Date'],
-                               y=greenset[parm],
-                               mode='lines+markers',
-                               name=green))
-    if blue in (df.reset_index())['Symbol'].tolist():
-        blueset = blueset.loc[blueset.Symbol[blueset.Symbol == blue].index.tolist()]
-        data.append(go.Scatter(x=blueset['Date'],
-                               y=blueset[parm],
-                               mode='lines+markers',
-                               name=blue))
+    freshsets = []
+    for i in range(len(names)):
+        freshsets.append(df.reset_index())
+
+        if names[i] in (df.reset_index())['Symbol'].tolist():
+            freshsets[i] = freshsets[i].loc[freshsets[i].Symbol[freshsets[i].Symbol == names[i]].index.tolist()]
+            data.append(go.Scatter(x=freshsets[i]['Date'],
+                                   y=freshsets[i][parm],
+                                   mode='lines+markers',
+                                   name=names[i]))
+
     layout = dict(title=parm + ' vs Time', xaxis_title="Time", yaxis_title=parm, showlegend=True)
     fig = dict(data=data, layout=layout)
     return json.dumps(fig, cls=pl.utils.PlotlyJSONEncoder)
@@ -112,8 +106,6 @@ def loadsite():
         dateSource = datetime.now().date()
         readCSV(filename, dateSource)
         flash('File Uploaded!')
-        for i in range(graphcount):
-            open('static/permanent/figure' + str(i) + '.png', 'w').close()
     if os.stat('static/permanent/fulldir.csv').st_size != 0:
         importantset = loadbig()
         return render_template('index.html', params=importantset[0], symbols=importantset[1], index=graphcount)
@@ -121,40 +113,58 @@ def loadsite():
     return render_template('index.html')
 
 
+@app.route('/swapgraph', methods=['POST'])
+def swapgraph():
+    names = []
+    jsons = []
+
+    names = json.loads(request.form['items'])
+    print(names)
+    del names[0]
+
+    parameter = request.form['parma']
+    appender = request.form['graph']
+
+    if os.stat('static/permanent/fulldir.csv').st_size != 0:
+        importantset = loadbig()
+        global plot1
+        global plot2
+        if appender == "1":
+            print("appender is 1")
+            jsons.append(getplot(importantset[2], parameter, names))
+            plot1 = jsons[0]
+            return plot1
+
+        if appender == "2":
+            print("appender is 2")
+            jsons.append(getplot(importantset[2], parameter, names))
+            plot2 = jsons[0]
+            return plot2
+
+    return render_template('index.html', params=importantset[0], symbols=importantset[1], index=graphcount,
+                           plot1=plot1, plot2=plot2)
+
+
 @app.route('/test', methods=['GET', 'POST'])
 def test():
-    paramer = []
-    redder = []
-    greener = []
-    bluer = []
+    names = []
     jsons = []
-    for i in range(graphcount):
-        appender = str(i)
-        paramer.append(str(request.form.get('params'+appender)))
-        redder.append(str(request.form.get('reds'+appender)))
-        greener.append(str(request.form.get('greens'+appender)))
-        bluer.append(str(request.form.get('blues'+appender)))
+
+    names = str(request.form.get('showVals')).split("\r\n ")
+    del names[0]
+
     if os.stat('static/permanent/fulldir.csv').st_size != 0:
         importantset = loadbig()
         for i in range(graphcount):
-            if not (redder[i] == greener[i] == bluer[i] == 'None'):
-                jsons.append(getplot(importantset[2], paramer[i], redder[i], greener[i], bluer[i]))
+            jsons.append(getplot(importantset[2], "Open", names))
+        global plot1, plot2
+        plot1 = jsons[0]
+        plot2 = jsons[1]
 
-        if len(jsons) == 2:
-            print('two!')
-            return render_template('index.html', params=importantset[0], symbols=importantset[1], index=graphcount,
-                                   plot1=jsons[0], plot2=jsons[1])
+        return render_template('index.html', params=importantset[0], symbols=importantset[1], index=graphcount,
+                               plot1=plot1, plot2=plot2)
 
-        if len(jsons) == 1:
-            print('one!')
-            return render_template('index.html', params=importantset[0], symbols=importantset[1], index=graphcount,
-                                   plot1=jsons[0])
-
-        if len(jsons) == 0:
-            print('none')
-            return render_template('index.html', params=importantset[0], symbols=importantset[1], index=graphcount)
-
-    return paramer + redder + greener + bluer
+    return (names + " " + jsons)
 
 
 if __name__ == "__main__":

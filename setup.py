@@ -9,7 +9,6 @@ from setuptools import setup
 
 APP = ['main.py']
 DATA_FILES = [
-    ('static/js', ['static/js/jquery-3.5.1.min.js']),
     ('static/permanent/', ['static/permanent/fulldir.csv']),
     ('templates', ['templates/index.html']),
     ('static/csv/csvs', ['static/csv/csvs/newfile.csv'])
