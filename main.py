@@ -161,9 +161,11 @@ def test():
         plot1 = jsons[0]
         plot2 = jsons[1]
 
+        importantset[1].sort()
+
         symbollength = len(importantset[1])
 
-        return render_template('index.html', params=importantset[0], symbols=importantset[1], appsymbollength=int(symbollength/6)+1, symbolindex=graphcount,
+        return render_template('index.html', params=importantset[0], symbols=importantset[1], appsymbollength=int(symbollength/15)+1, symbolindex=graphcount,
                                plot1=plot1, plot2=plot2)
 
     return names + " " + jsons

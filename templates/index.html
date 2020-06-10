@@ -60,14 +60,14 @@
                     <tbody id="table-body")>
                         {% for j in range(appsymbollength) %}
                         <tr class="d-flex">
-                            {% for k in range(6) %}
-                                {% if symbols[6*j+k] %}
+                            {% for k in range(15) %}
+                                {% if symbols[15*j+k] %}
 
-                                    <td name="{{ symbols[6*j+k] }}namecell" class="col-1">
-                                        {{ symbols[6*j+k] }}
+                                    <td name="{{ symbols[15*j+k] }}namecell" class="col">
+                                        {{ symbols[15*j+k] }}
                                     </td>
-                                    <td name="{{ symbols[6*j+k] }}boxcell" class="col-1">
-                                        <input type="checkbox" onchange="showPicked(this)" id="{{ symbols[6*j+k] }}" name="symbolcheckbox" value="pick{{ symbols[6*j+k] }}">
+                                    <td name="{{ symbols[6*j+k] }}boxcell" class="col">
+                                        <input type="checkbox" onchange="showPicked(this)" id="{{ symbols[15*j+k] }}" name="symbolcheckbox" value="pick{{ symbols[15*j+k] }}">
                                     </td>
 
                                 {% endif %}
@@ -121,8 +121,8 @@
                     for(j = 0; j < td.length; j=j+2) {
                         txtValue = td[j].textContent || td[j].innerText;
                         if (txtValue.toUpperCase().indexOf(input) > -1) {
-                            td[j].className = "col-1";
-                            td[j+1].className = "col-1";
+                            td[j].className = "col";
+                            td[j+1].className = "col";
                         } else {
                             td[j].className = "d-none";
                             td[j+1].className = "d-none";
