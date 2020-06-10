@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+
 <html>
     <head>
         <title>Options Tracer</title>
@@ -28,88 +30,103 @@
                     <input type="submit" value="Send File">
                 </form>
             </div>
+            <br>
+            <br>
+            {% if params %}
+            <button data-toggle="collapse" data-target="#collapsed">Collapse</button>
             <div class="row">
-                <div class="col-lg-3">
-                    {% if params %}
-                        <h2>Your Selections Will Appear Here</h2>
-                        <form method="POST" action="{{ url_for('test') }}">
+                <div class="col-6">
+                    <form method="POST" action="{{ url_for('test') }}">
+                        <div style="display:none;">
                             <textarea cols="12" name="showVals" id="showVals" readonly></textarea>
-                            <input type="submit" value="Graph Selection">
-                        </form>
-                        <table id="checkAll">
-                            <tr>
-                                <td>Check All?</td>
-                                <td>
-                                    <input type="checkbox" onchange="checkAll(this)" id="allbox" name="allbox" value="allpick">
-                                </td>
-                            </tr>
-                        </table>
-
-
-                        <input type="text" id="myInput" onkeyup="parseTable()" onfocus="showAll(this)" onblur="hideInfo(this)" placeholder="Enter a symbol..">
-                        <table id="myTable">
-                            <tr class="header">
-                                <th style="width:60%;">Symbol</th>
-                                <th style="width:40%;">Graph?</th>
-                            </tr>
-                            {% for symbol in symbols %}
-                                <tr>
-                                    <td>{{ symbol }}</td>
-                                    <td>
-                                        <input type="checkbox" onchange="showPicked(this)" id="{{ symbol }}" name="symbolcheckbox" value="pick{{ symbol }}">
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </table>
-                    {% endif %}
-                </div>
-                <div class="col-lg-9">
-                    {% if plot1 %}
-                        <select name="params2" id="params1" onchange="plotNew(this)">
-                            {% for param in params %}
-                                <option value="{{ param }}">{{ param }}</option>
-                            {% endfor %}
-                        </select>
-                        <div class="chart" id="graph1">
-                            <script>
-                                var graphs = {{plot1 | safe}};
-                                Plotly.plot('graph1',graphs,{});
-                            </script>
                         </div>
-                    {% endif %}
-                    {% if plot2 %}
-                        <select name="params2" id="params2" onchange="plotNew(this)">
-                            {% for param in params %}
-                                <option value="{{ param }}">{{ param }}</option>
-                            {% endfor %}
-                        </select>
-                        <div class="chart" id="graph2">
-                            <script>
-                                var graphs = {{plot2 | safe}};
-                                Plotly.plot('graph2',graphs,{});
-                            </script>
-                        </div>
-                    {% endif %}
+                        <input type="submit" value="Plot Graph">
+                    </form>
+                    <table id="checkAll">
+                        <tr>
+                            <td>Check All?</td>
+                            <td>
+                                <input type="checkbox" onchange="checkAll(this)" id="allbox" name="allbox" value="allpick">
+                            </td>
+                        </tr>
+                    </table>
                 </div>
             </div>
-        </br>
+            <div id="collapsed" class="row">
+                <div class="col-6">
+                    <input type="text" id="myInput" onkeyup="parseTable()" onfocus="showAll(this)" onblur="hideInfo(this)" placeholder="Enter a symbol..">
+                </div>
+                <table class="table" id="symboltable">
+                    <tbody id="table-body")>
+                        {% for j in range(appsymbollength) %}
+                        <tr class="d-flex">
+                            {% for k in range(6) %}
+                                {% if symbols[6*j+k] %}
+
+                                    <td name="{{ symbols[6*j+k] }}namecell" class="col-1">
+                                        {{ symbols[6*j+k] }}
+                                    </td>
+                                    <td name="{{ symbols[6*j+k] }}boxcell" class="col-1">
+                                        <input type="checkbox" onchange="showPicked(this)" id="{{ symbols[6*j+k] }}" name="symbolcheckbox" value="pick{{ symbols[6*j+k] }}">
+                                    </td>
+
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+                {% if plot1 %}
+                <select name="params2" id="params1" onchange="plotNew(this)">
+                    {% for param in params %}
+                    <option value="{{ param }}">{{ param }}</option>
+                    {% endfor %}
+                </select>
+                <div class="chart" id="graph1">
+                    <script>
+                        var graphs = {{plot1 | safe}};
+                        Plotly.plot('graph1',graphs,{});
+                    </script>
+                </div>
+                {% endif %}
+                {% if plot2 %}
+                <select name="params2" id="params2" onchange="plotNew(this)">
+                    {% for param in params %}
+                    <option value="{{ param }}">{{ param }}</option>
+                    {% endfor %}
+                </select>
+                <div class="chart" id="graph2">
+                    <script>
+                        var graphs = {{plot2 | safe}};
+                        Plotly.plot('graph2',graphs,{});
+                    </script>
+                </div>
+                {% endif %}
+            </div>
         <script>
 
         function parseTable() {
             // Declare variables
-            var input, table, tr, td, i, txtValue;
+            var input, table, tr, td, i, j, txtValue;
             input = document.getElementById("myInput").value;
-            table = document.getElementById("myTable");
+            table = document.getElementById("symboltable");
             tr = table.getElementsByTagName("tr");
 
             for (i = 0; i < tr.length; i++) {
-                td = tr[i].getElementsByTagName("td")[0];
-                if (td) {
-                    txtValue = td.textContent || td.innerText;
-                    if (txtValue.toUpperCase().indexOf(input) > -1) {
-                        tr[i].style.display = "";
-                    } else {
-                        tr[i].style.display = "none";
+                td = tr[i].getElementsByTagName("td");
+                console.log(td);
+                if(td) {
+                    for(j = 0; j < td.length; j=j+2) {
+                        txtValue = td[j].textContent || td[j].innerText;
+                        if (txtValue.toUpperCase().indexOf(input) > -1) {
+                            td[j].className = "col-1";
+                            td[j+1].className = "col-1";
+                        } else {
+                            td[j].className = "d-none";
+                            td[j+1].className = "d-none";
+                        }
                     }
                 }
             }
@@ -117,21 +134,21 @@
 
         function hideInfo(source) {
             var table, tr;
-            table = document.getElementById("myTable");
+            table = document.getElementById("symboltable");
             tr = table.getElementsByTagName("tr");
             if (source.value === "") {
                 for (i = 0; i < 5; i++) {
-                    tr[i].style.display = "";
+                    tr[i].className = "d-flex";
                 }
                 for (i = 6; i < tr.length; i++) {
-                    tr[i].style.display = "none";
+                    tr[i].className = "d-none";
                 }
             }
         }
 
         function showAll(source) {
             var table, tr;
-            table = document.getElementById("myTable");
+            table = document.getElementById("symboltable");
             tr = table.getElementsByTagName("tr");
             for (i = 0; i < tr.length; i++) {
                 tr[i].style.display = "";
@@ -143,10 +160,16 @@
             localStorage.setItem(source.id, source.checked);
             if (source.checked) {
                 var text = document.createTextNode(source.id);
-                items.push(source.id);
+                if(items.indexOf(source.id) == -1) {
+                    items.push(source.id);
+                    console.log("added " + source.id);
+                }
             } else {
                 var text = document.createTextNode(source.id);
-                items.splice(items.indexOf(source.id), 1);
+                if(items.indexOf(source.id) != -1) {
+                    items.splice(items.indexOf(source.id), 1);
+                    console.log("deleted " + source.id);
+                }
             }
             document.getElementById("showVals").innerHTML = items.join("\n ");
         }
